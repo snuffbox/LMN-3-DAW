@@ -11,9 +11,9 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     enum ArpPatterns { UP, DOWN, PING_PONG, RANDOM };
     enum NoteDivision { QUARTER, EIGHTH, SIXTEENTH, THIRTY_SECOND };
 
-    const juce::StringArray chordShapeNames = {"Major", "Minor" /*, ... */};
-    const juce::StringArray arpPatternNames = {"Up", "Down", "Ping Pong", "Random"};
-    const juce::StringArray noteDivisionNames = {"1/4", "1/8", "1/16", "1/32"};
+    static const juce::StringArray chordShapeNames;
+    static const juce::StringArray arpPatternNames;
+    static const juce::StringArray noteDivisionNames;
 
     std::vector<int> generateChordNotes(int rootNote, ChordShapes chordShape, int octaves);
     std::vector<int> applyArpPattern(const std::vector<int>& chordNotes, ArpPatterns arpPattern);
