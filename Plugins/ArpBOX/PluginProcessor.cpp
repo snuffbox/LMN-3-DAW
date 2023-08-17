@@ -122,15 +122,22 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     bool editorIsVisible =
         *(state.getRawParameterValue(editorIsVisibleId)) > .5f;
     // Get tempo from playhead
-    double tempo = getPlayHead()->getCurrentPosition().bpm;
+    //double tempo = getPlayHead()->getCurrentPosition().bpm;
+    juce::AudioPlayHead::CurrentPositionInfo positionInfo;
+
+    if (getPlayHead() && getPlayHead()->getCurrentPosition(positionInfo)) {
+        double tempo = positionInfo.bpm;
+    }
+
     // Assign variables
     const juce::StringArray chordShapeNames = {"Major", "Minor" /*, ... */};
-    const juce::StringArray arpPatternNames = {"Up", "Down", "Ping Pong",
-                                               "Random"};
+    const juce::StringArray arpPatternNames = {"Up", "Down", "Ping Pong", "Random"};
     const juce::StringArray noteDivisionNames = {"1/4", "1/8", "1/16", "1/32"};
 
     // Calculate note duration
+
     double beatDuration = 60.0 / tempo;
+
     double noteDuration;
     switch (noteDivision) {
         case QUARTER:
