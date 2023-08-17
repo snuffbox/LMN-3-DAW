@@ -18,7 +18,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
              std::make_unique<juce::AudioParameterChoice>(
                  "chordShape", "Chord Shape", chordShapeNames, 0),
              std::make_unique<juce::AudioParameterChoice>(
-                 "arpPattern", "Arp Pattern", chordShapeNames, 0),
+                 "arpPattern", "Arp Pattern", arpPatternNames, 0),
              std::make_unique<juce::AudioParameterChoice>(
                  "noteDivision", "Note Division", noteDivisionNames, 0),
              std::make_unique<juce::AudioParameterInt>(
@@ -152,77 +152,114 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         }
     }
 
+    //if (editorIsVisible) {
+    //    int increaseValueFlag = 1;
+    //    int decreaseValueFlag = 127;
+    //    for (auto messageData : midiMessages) {
+    //        if (messageData.getMessage().isController()) {
+    //            if (messageData.getMessage().getControllerNumber() == 3) {
+    //                float currentValue =
+    //                    state.getParameter(parameter1Id)->getValue();
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    increaseValueFlag) {
+    //                    state.getParameter(parameter1Id)
+    //                        ->setValueNotifyingHost(currentValue + .01f);
+    //                }
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    decreaseValueFlag) {
+    //                    state.getParameter(parameter1Id)
+    //                        ->setValueNotifyingHost(currentValue - .01f);
+    //                }
+    //            }
+    //            if (messageData.getMessage().getControllerNumber() == 9) {
+    //                float currentValue =
+    //                    state.getParameter(parameter2Id)->getValue();
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    increaseValueFlag) {
+    //                    state.getParameter(parameter2Id)
+    //                        ->setValueNotifyingHost(currentValue + .01f);
+    //                }
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    decreaseValueFlag) {
+    //                    state.getParameter(parameter2Id)
+    //                        ->setValueNotifyingHost(currentValue - .01f);
+    //                }
+    //            }
+    //            if (messageData.getMessage().getControllerNumber() == 14) {
+    //                float currentValue =
+    //                    state.getParameter(parameter3Id)->getValue();
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    increaseValueFlag) {
+    //                    state.getParameter(parameter3Id)
+    //                        ->setValueNotifyingHost(currentValue + .01f);
+    //                }
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    decreaseValueFlag) {
+    //                    state.getParameter(parameter3Id)
+    //                        ->setValueNotifyingHost(currentValue - .01f);
+    //                }
+    //            }
+    //            if (messageData.getMessage().getControllerNumber() == 15) {
+    //                float currentValue =
+    //                    state.getParameter(parameter4Id)->getValue();
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    increaseValueFlag) {
+    //                    state.getParameter(parameter4Id)
+    //                        ->setValueNotifyingHost(currentValue + .01f);
+    //                }
+    //                if (messageData.getMessage().getControllerValue() ==
+    //                    decreaseValueFlag) {
+    //                    state.getParameter(parameter4Id)
+    //                        ->setValueNotifyingHost(currentValue - .01f);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+
     if (editorIsVisible) {
         int increaseValueFlag = 1;
         int decreaseValueFlag = 127;
         for (auto messageData : midiMessages) {
             if (messageData.getMessage().isController()) {
+                auto handleControllerChange = [&](const juce::String &paramId) {
+                    float currentValue =
+                        state.getParameter(paramId)->getValue();
+                    float newValue = currentValue;
+                    if (messageData.getMessage().getControllerValue() ==
+                        increaseValueFlag) {
+                        newValue = juce::jmin(
+                            currentValue + 1.0f / (numChoices - 1), 1.0f);
+                    }
+                    if (messageData.getMessage().getControllerValue() ==
+                        decreaseValueFlag) {
+                        newValue = juce::jmax(
+                            currentValue - 1.0f / (numChoices - 1), 0.0f);
+                    }
+                    state.getParameter(paramId)->setValueNotifyingHost(
+                        newValue);
+                };
+
                 if (messageData.getMessage().getControllerNumber() == 3) {
-                    float currentValue =
-                        state.getParameter(parameter1Id)->getValue();
-                    if (messageData.getMessage().getControllerValue() ==
-                        increaseValueFlag) {
-                        state.getParameter(parameter1Id)
-                            ->setValueNotifyingHost(currentValue + .01f);
-                    }
-
-                    if (messageData.getMessage().getControllerValue() ==
-                        decreaseValueFlag) {
-                        state.getParameter(parameter1Id)
-                            ->setValueNotifyingHost(currentValue - .01f);
-                    }
+                    int numChoices = chordShapeNames.size();
+                    handleControllerChange("chordShape");
                 }
-
                 if (messageData.getMessage().getControllerNumber() == 9) {
-                    float currentValue =
-                        state.getParameter(parameter2Id)->getValue();
-                    if (messageData.getMessage().getControllerValue() ==
-                        increaseValueFlag) {
-                        state.getParameter(parameter2Id)
-                            ->setValueNotifyingHost(currentValue + .01f);
-                    }
-
-                    if (messageData.getMessage().getControllerValue() ==
-                        decreaseValueFlag) {
-                        state.getParameter(parameter2Id)
-                            ->setValueNotifyingHost(currentValue - .01f);
-                    }
+                    int numChoices = arpPatternNames.size();
+                    handleControllerChange("arpPattern");
                 }
-
                 if (messageData.getMessage().getControllerNumber() == 14) {
-                    float currentValue =
-                        state.getParameter(parameter3Id)->getValue();
-                    if (messageData.getMessage().getControllerValue() ==
-                        increaseValueFlag) {
-                        state.getParameter(parameter3Id)
-                            ->setValueNotifyingHost(currentValue + .01f);
-                    }
-
-                    if (messageData.getMessage().getControllerValue() ==
-                        decreaseValueFlag) {
-                        state.getParameter(parameter3Id)
-                            ->setValueNotifyingHost(currentValue - .01f);
-                    }
+                    int numChoices = noteDivisionNames.size();
+                    handleControllerChange("noteDivision");
                 }
-
                 if (messageData.getMessage().getControllerNumber() == 15) {
-                    float currentValue =
-                        state.getParameter(parameter4Id)->getValue();
-                    if (messageData.getMessage().getControllerValue() ==
-                        increaseValueFlag) {
-                        state.getParameter(parameter4Id)
-                            ->setValueNotifyingHost(currentValue + .01f);
-                    }
-
-                    if (messageData.getMessage().getControllerValue() ==
-                        decreaseValueFlag) {
-                        state.getParameter(parameter4Id)
-                            ->setValueNotifyingHost(currentValue - .01f);
-                    }
+                    int numChoices = 3; // Octaves range from 1 to 3
+                    handleControllerChange("octaves");
                 }
             }
         }
     }
+
 
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
